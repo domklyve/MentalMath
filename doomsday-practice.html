@@ -232,7 +232,8 @@
         <div class="bigdate" id="dateDisplay">—</div>
         <p class="hintline" id="timerLine">
           Timer: <span class="mono" id="timer">0.00</span>s
-          <span class="tiny"> &nbsp; (Press <span class="kbd">Enter</span> to submit)</span>
+          <span class="tiny"> &nbsp;   &nbsp; (Hotkeys: <span class="kbd">0</span>–<span class="kbd">6</span> submit weekday, <span class="kbd">Enter</span> submits dropdown)
+</span>
         </p>
 
         <div class="row">
@@ -597,6 +598,20 @@
       recordResult(your, false);
     }
 
+    function submitByDigit(d){
+      if (!requireCurrentDate()) return;
+      const idx = Number(d);
+      if (!Number.isInteger(idx) || idx < 0 || idx > 6) return;
+
+      const your = WEEKDAYS[idx];
+      // Keep the UI in sync (optional but nice)
+      weekdayEl.value = your;
+
+      recordResult(your, false);
+    }
+
+
+    
     function skipQuestion(){
       if (!requireCurrentDate()) return;
       recordResult("", true);
@@ -681,11 +696,23 @@
     });
 
     // Keyboard: Enter submits
-    document.addEventListener("keydown", (e) => {
+        document.addEventListener("keydown", (e) => {
+      const active = document.activeElement;
+
+      // If the user is typing in a text field (e.g., Profile), do not hijack digits/Enter.
+      const isTyping =
+        active &&
+        ((active.tagName === "INPUT" && active.type === "text") ||
+         active.tagName === "TEXTAREA");
+
+      // Digits 0..6 submit weekday immediately
+      if (!isTyping && /^[0-6]$/.test(e.key)) {
+        submitByDigit(e.key);
+        return;
+      }
+
       if (e.key === "Enter") {
-        // Avoid Enter triggering when focused on profile controls
-        const active = document.activeElement;
-        if (active && (active.id === "profile")) return;
+        if (active && active.id === "profile") return;
         submitAnswer();
       }
       if (e.key === "n" || e.key === "N") newQuestion();
