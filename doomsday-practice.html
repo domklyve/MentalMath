@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Doomsday Practice</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #eef2ff;
+      --muted: #b9c2e6;
+      --accent: #7aa2ff;
+      --good: #3ddc97;
+      --bad: #ff5c7a;
+      --warn: #ffcc66;
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 20% 20%, #17224a 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: var(--sans);
+      letter-spacing: 0.2px;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 44px;
+    }
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 6px 0;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      margin: 0;
+      max-width: 60ch;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; }
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card h2 {
+      margin: 0 0 10px 0;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 13px; color: var(--muted); }
+    input[type="number"], input[type="text"], select {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 10px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="number"] { width: 110px; }
+    input[type="text"] { width: 180px; }
+    select { padding: 10px; }
+    button {
+      background: rgba(122,162,255,0.18);
+      border: 1px solid rgba(122,162,255,0.45);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.03s ease, background 0.15s ease;
+      user-select: none;
+    }
+    button:hover { background: rgba(122,162,255,0.26); }
+    button:active { transform: translateY(1px); }
+    button.secondary {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--border);
+    }
+    button.danger {
+      background: rgba(255,92,122,0.18);
+      border-color: rgba(255,92,122,0.45);
+    }
+    .bigdate {
+      font-size: 34px;
+      margin: 8px 0 6px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .hintline {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
+    .status {
+      margin-top: 12px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      font-size: 14px;
+      line-height: 1.35;
+      min-height: 44px;
+    }
+    .status.good { border-color: rgba(61,220,151,0.5); background: rgba(61,220,151,0.10); }
+    .status.bad  { border-color: rgba(255,92,122,0.5); background: rgba(255,92,122,0.10); }
+    .status.warn { border-color: rgba(255,204,102,0.5); background: rgba(255,204,102,0.10); }
+
+    .statsgrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .stat .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+    .stat .v { margin-top: 6px; font-size: 18px; font-weight: 800; font-family: var(--mono); }
+    .mono { font-family: var(--mono); }
+    .tiny { font-size: 12px; color: var(--muted); }
+    .divider { height: 1px; background: var(--border); margin: 12px 0; }
+    .kbd {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+    }
+    .footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .checkbox {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+    input[type="checkbox"] { transform: scale(1.1); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Doomsday Day-of-Week Practice</h1>
+        <p class="subtitle">
+          Pick a year range, get random dates, and enter the weekday.
+          Tracks accuracy and timing. Optional per-device persistence via local storage.
+        </p>
+      </div>
+      <div class="card" style="padding:12px 14px; max-width: 360px;">
+        <div class="row" style="justify-content: space-between;">
+          <label for="profile">Profile</label>
+          <span class="tiny">Stored locally on this device</span>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input id="profile" type="text" placeholder="e.g., Alice" />
+          <button id="loadProfile" class="secondary">Load</button>
+        </div>
+        <div class="row" style="margin-top:10px; align-items:center; justify-content: space-between;">
+          <span class="checkbox">
+            <input id="persist" type="checkbox" checked />
+            <label for="persist" style="margin:0;">Persist stats</label>
+          </span>
+          <button id="resetStats" class="danger">Reset</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Practice -->
+      <section class="card">
+        <h2>Practice</h2>
+
+        <div class="row">
+          <div>
+            <label for="yearStart">Year start</label><br />
+            <input id="yearStart" type="number" value="1900" min="1" max="9999" />
+          </div>
+          <div>
+            <label for="yearEnd">Year end</label><br />
+            <input id="yearEnd" type="number" value="2099" min="1" max="9999" />
+          </div>
+          <div style="flex:1"></div>
+          <button id="newDate">New date</button>
+          <button id="reveal" class="secondary">Reveal</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="bigdate" id="dateDisplay">—</div>
+        <p class="hintline" id="timerLine">
+          Timer: <span class="mono" id="timer">0.00</span>s
+          <span class="tiny"> &nbsp; (Press <span class="kbd">Enter</span> to submit)</span>
+        </p>
+
+        <div class="row">
+          <label for="weekday">Your answer</label>
+          <select id="weekday">
+            <option value="">Select…</option>
+            <option>Sunday</option>
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
+            <option>Saturday</option>
+          </select>
+
+          <button id="submit">Submit</button>
+          <button id="skip" class="secondary">Skip</button>
+        </div>
+
+        <div class="status" id="statusBox"></div>
+
+        <p class="footer">
+          Notes: Range is inclusive. Dates are uniform over all valid days in the range.
+          Uses the built-in JavaScript date engine for ground truth (Gregorian calendar).
+        </p>
+      </section>
+
+      <!-- Stats -->
+      <aside class="card">
+        <h2>Stats</h2>
+
+        <div class="statsgrid">
+          <div class="stat">
+            <div class="k">Attempts</div>
+            <div class="v" id="sAttempts">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Correct</div>
+            <div class="v" id="sCorrect">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Accuracy</div>
+            <div class="v" id="sAcc">0.0%</div>
+          </div>
+          <div class="stat">
+            <div class="k">Avg time (answered)</div>
+            <div class="v" id="sAvg">—</div>
+          </div>
+          <div class="stat">
+            <div class="k">Current streak</div>
+            <div class="v" id="sStreak">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Best streak</div>
+            <div class="v" id="sBest">0</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stat">
+          <div class="k">Last 10 results</div>
+          <div class="v" style="font-size: 13px; font-weight: 600; font-family: var(--mono); line-height: 1.5;" id="last10">
+            —
+          </div>
+          <div class="tiny" style="margin-top:6px;">
+            Format: YYYY-MM-DD: YourAnswer → CorrectAnswer (time)
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button id="export" class="secondary">Export JSON</button>
+          <button id="import" class="secondary">Import JSON</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none;" />
+        </div>
+
+        <p class="footer">
+          “Persist stats” stores your stats in the browser’s local storage under the selected profile name.
+          For a classroom lab, this usually works well enough without any sign-in.
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Utilities
+    // ----------------------------
+    const WEEKDAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    function pad2(n){ return String(n).padStart(2, "0"); }
+    function formatDate(d){
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
+    function clampInt(x, lo, hi){
+      x = Number.parseInt(x, 10);
+      if (Number.isNaN(x)) return lo;
+      return Math.max(lo, Math.min(hi, x));
+    }
+    function nowMs(){ return performance.now(); }
+
+    // Generate a uniform random valid date within [yearStart, yearEnd], inclusive,
+    // across all days (not uniform over years/months).
+    function randomDateInRange(yearStart, yearEnd){
+      // Use UTC to avoid DST/offset issues affecting day boundaries.
+      const start = Date.UTC(yearStart, 0, 1, 12, 0, 0);     // noon UTC
+      const end   = Date.UTC(yearEnd, 11, 31, 12, 0, 0);     // noon UTC
+      if (end < start) throw new Error("Invalid year range.");
+      const dayMs = 24 * 60 * 60 * 1000;
+      const nDays = Math.floor((end - start) / dayMs) + 1;
+      const k = Math.floor(Math.random() * nDays);
+      const t = start + k * dayMs;
+      return new Date(t);
+    }
+
+    function correctWeekday(dateObj){
+      // In JS, getUTCDay() returns 0=Sunday...6=Saturday
+      return WEEKDAYS[dateObj.getUTCDay()];
+    }
+
+    // ----------------------------
+    // State (per profile)
+    // ----------------------------
+    function emptyStats(){
+      return {
+        attempts: 0,
+        correct: 0,
+        // timing only for answered (submit), not for skip
+        answeredCount: 0,
+        totalAnswerMs: 0,
+        streak: 0,
+        bestStreak: 0,
+        last10: [] // array of {date, your, correct, ms, ok}
+      };
+    }
+
+    const STORAGE_PREFIX = "doomsday_practice_v1:";
+    let profileName = "";
+    let stats = emptyStats();
+
+    // Current question
+    let currentDate = null;
+    let startMs = null;
+    let timerInterval = null;
+    let revealed = false;
+
+    // ----------------------------
+    // DOM refs
+    // ----------------------------
+    const el = (id) => document.getElementById(id);
+
+    const yearStartEl = el("yearStart");
+    const yearEndEl   = el("yearEnd");
+    const dateDisplayEl = el("dateDisplay");
+    const weekdayEl = el("weekday");
+    const timerEl = el("timer");
+    const statusBoxEl = el("statusBox");
+    const persistEl = el("persist");
+
+    const sAttempts = el("sAttempts");
+    const sCorrect = el("sCorrect");
+    const sAcc = el("sAcc");
+    const sAvg = el("sAvg");
+    const sStreak = el("sStreak");
+    const sBest = el("sBest");
+    const last10El = el("last10");
+
+    const profileEl = el("profile");
+
+    // ----------------------------
+    // Persistence
+    // ----------------------------
+    function storageKey(name){
+      const safe = (name || "").trim().toLowerCase();
+      return STORAGE_PREFIX + (safe ? safe : "default");
+    }
+
+    function loadStats(){
+      if (!persistEl.checked) {
+        stats = emptyStats();
+        renderStats();
+        return;
+      }
+      const key = storageKey(profileName);
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        stats = emptyStats();
+        renderStats();
+        return;
+      }
+      try {
+        const obj = JSON.parse(raw);
+        // Light validation / defaults
+        stats = Object.assign(emptyStats(), obj);
+        if (!Array.isArray(stats.last10)) stats.last10 = [];
+      } catch {
+        stats = emptyStats();
+      }
+      renderStats();
+    }
+
+    function saveStats(){
+      if (!persistEl.checked) return;
+      const key = storageKey(profileName);
+      localStorage.setItem(key, JSON.stringify(stats));
+    }
+
+    // ----------------------------
+    // UI rendering
+    // ----------------------------
+    function renderStats(){
+      sAttempts.textContent = String(stats.attempts);
+      sCorrect.textContent = String(stats.correct);
+      const acc = stats.attempts ? (100 * stats.correct / stats.attempts) : 0;
+      sAcc.textContent = acc.toFixed(1) + "%";
+
+      if (stats.answeredCount > 0) {
+        const avgSec = (stats.totalAnswerMs / stats.answeredCount) / 1000;
+        sAvg.textContent = avgSec.toFixed(2) + "s";
+      } else {
+        sAvg.textContent = "—";
+      }
+
+      sStreak.textContent = String(stats.streak);
+      sBest.textContent = String(stats.bestStreak);
+
+      if (!stats.last10.length) {
+        last10El.textContent = "—";
+      } else {
+        last10El.innerHTML = stats.last10
+          .slice(0, 10)
+          .map(r => {
+            const t = (r.ms/1000).toFixed(2) + "s";
+            const mark = r.ok ? "✓" : "✗";
+            const your = r.your || "—";
+            return `${mark} ${r.date}: ${your} → ${r.correct} (${t})`;
+          })
+          .join("<br/>");
+      }
+    }
+
+    function setStatus(kind, html){
+      statusBoxEl.className = "status" + (kind ? (" " + kind) : "");
+      statusBoxEl.innerHTML = html || "";
+    }
+
+    function startTimer(){
+      stopTimer();
+      startMs = nowMs();
+      timerEl.textContent = "0.00";
+      timerInterval = setInterval(() => {
+        const ms = nowMs() - startMs;
+        timerEl.textContent = (ms/1000).toFixed(2);
+      }, 50);
+    }
+
+    function stopTimer(){
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function requireCurrentDate(){
+      if (!currentDate) {
+        setStatus("warn", "Click <b>New date</b> to begin.");
+        return false;
+      }
+      return true;
+    }
+
+    // ----------------------------
+    // Core actions
+    // ----------------------------
+    function newQuestion(){
+      const ys = clampInt(yearStartEl.value, 1, 9999);
+      const ye = clampInt(yearEndEl.value, 1, 9999);
+      const yearStart = Math.min(ys, ye);
+      const yearEnd   = Math.max(ys, ye);
+      yearStartEl.value = yearStart;
+      yearEndEl.value = yearEnd;
+
+      try {
+        currentDate = randomDateInRange(yearStart, yearEnd);
+      } catch (e) {
+        setStatus("bad", String(e));
+        return;
+      }
+
+      revealed = false;
+      weekdayEl.value = "";
+      dateDisplayEl.textContent = formatDate(currentDate);
+      setStatus("", "Enter the weekday, then press <b>Submit</b>.");
+      startTimer();
+      weekdayEl.focus();
+    }
+
+    function revealAnswer(){
+      if (!requireCurrentDate()) return;
+      const correct = correctWeekday(currentDate);
+      setStatus("warn", `Correct weekday: <b>${correct}</b>. (Try to compute it first—use reveal as a check.)`);
+      revealed = true;
+    }
+
+    function recordResult(yourAnswer, isSkip=false){
+      if (!requireCurrentDate()) return;
+
+      const correct = correctWeekday(currentDate);
+      const ms = startMs ? (nowMs() - startMs) : 0;
+
+      // Attempts count includes skip? You can change this policy.
+      stats.attempts += 1;
+
+      let ok = false;
+      if (!isSkip) {
+        stats.answeredCount += 1;
+        stats.totalAnswerMs += ms;
+
+        ok = (yourAnswer === correct);
+        if (ok) {
+          stats.correct += 1;
+          stats.streak += 1;
+          stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
+        } else {
+          stats.streak = 0;
+        }
+      } else {
+        // Skip: do not affect correct, streak breaks
+        stats.streak = 0;
+      }
+
+      const rec = {
+        date: formatDate(currentDate),
+        your: isSkip ? "Skipped" : yourAnswer,
+        correct,
+        ms,
+        ok: isSkip ? false : ok
+      };
+      stats.last10.unshift(rec);
+      stats.last10 = stats.last10.slice(0, 10);
+
+      saveStats();
+      renderStats();
+      stopTimer();
+
+      if (isSkip) {
+        setStatus("warn", `Skipped. Correct weekday was <b>${correct}</b>. Click <b>New date</b> for the next one.`);
+      } else if (ok) {
+        setStatus("good", `Correct: <b>${correct}</b>. Time: <span class="mono">${(ms/1000).toFixed(2)}s</span>.`);
+      } else {
+        setStatus("bad", `Incorrect. You answered <b>${yourAnswer}</b>; correct is <b>${correct}</b>. Time: <span class="mono">${(ms/1000).toFixed(2)}s</span>.`);
+      }
+    }
+
+    function submitAnswer(){
+      if (!requireCurrentDate()) return;
+      const your = weekdayEl.value;
+      if (!your) {
+        setStatus("warn", "Select a weekday first.");
+        return;
+      }
+      recordResult(your, false);
+    }
+
+    function skipQuestion(){
+      if (!requireCurrentDate()) return;
+      recordResult("", true);
+    }
+
+    // ----------------------------
+    // Profile actions
+    // ----------------------------
+    function loadProfileFromUI(){
+      const name = (profileEl.value || "").trim();
+      profileName = name || "default";
+      loadStats();
+      setStatus("", `Profile loaded: <b>${profileName}</b>.`);
+    }
+
+    function resetStatsForProfile(){
+      stats = emptyStats();
+      saveStats();
+      renderStats();
+      setStatus("warn", "Stats reset for this profile on this device.");
+    }
+
+    // Export/import for moving stats between devices
+    function exportJSON(){
+      const payload = {
+        profile: profileName || "default",
+        stats
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `doomsday_stats_${(profileName||"default").replace(/\s+/g,"_")}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus("", "Exported stats JSON.");
+    }
+
+    function importJSON(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const obj = JSON.parse(reader.result);
+          if (!obj || typeof obj !== "object" || !obj.stats) throw new Error("Invalid file.");
+          stats = Object.assign(emptyStats(), obj.stats);
+          if (!Array.isArray(stats.last10)) stats.last10 = [];
+          saveStats();
+          renderStats();
+          setStatus("good", "Imported stats JSON successfully.");
+        } catch (e) {
+          setStatus("bad", "Import failed: " + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ----------------------------
+    // Event wiring
+    // ----------------------------
+    el("newDate").addEventListener("click", newQuestion);
+    el("reveal").addEventListener("click", revealAnswer);
+    el("submit").addEventListener("click", submitAnswer);
+    el("skip").addEventListener("click", skipQuestion);
+
+    el("loadProfile").addEventListener("click", loadProfileFromUI);
+    el("resetStats").addEventListener("click", resetStatsForProfile);
+
+    persistEl.addEventListener("change", () => {
+      // Turning off persistence gives a fresh ephemeral session.
+      loadStats();
+      setStatus("warn", persistEl.checked ? "Persistence enabled." : "Persistence disabled (stats will not be saved).");
+    });
+
+    el("export").addEventListener("click", exportJSON);
+    el("import").addEventListener("click", () => el("importFile").click());
+    el("importFile").addEventListener("change", (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (f) importJSON(f);
+      ev.target.value = "";
+    });
+
+    // Keyboard: Enter submits
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        // Avoid Enter triggering when focused on profile controls
+        const active = document.activeElement;
+        if (active && (active.id === "profile")) return;
+        submitAnswer();
+      }
+      if (e.key === "n" || e.key === "N") newQuestion();
+      if (e.key === "r" || e.key === "R") revealAnswer();
+    });
+
+    // Initialize default profile
+    profileEl.value = "default";
+    profileName = "default";
+    loadStats();
+    setStatus("warn", "Click <b>New date</b> to start. Hotkeys: <span class='kbd'>N</span> new, <span class='kbd'>R</span> reveal, <span class='kbd'>Enter</span> submit.");
+  </script>
+</body>
+</html>
